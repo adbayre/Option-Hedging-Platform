@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import CandlestickChart from './components/CandlestickChart'
 import LiveBadge from './components/LiveBadge'
+import BinomialTreeChart from './components/BinomialTreeChart'
+import ConvergenceChart from './components/ConvergenceChart'
 
 export default function OptionsView() {
   // --- STATE ---
@@ -17,12 +19,16 @@ export default function OptionsView() {
   const [strike, setStrike] = useState(100)
   const [maturity, setMaturity] = useState(1.0)
   const [optionType, setOptionType] = useState('Call')
+  const [steps, setSteps] = useState(50) // State is correct
 
   // Data
   const [marketData, setMarketData] = useState(null)
   const [prices, setPrices] = useState({ bs: 0, crr: 0 })
   const [isCalculating, setIsCalculating] = useState(false)
   const [isFetchingData, setIsFetchingData] = useState(false)
+
+  // Visuals
+  const [visuals, setVisuals] = useState(null)
 
   // INDEX OPTIONS
   const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA']
@@ -60,13 +66,19 @@ export default function OptionsView() {
         r: parseFloat(rate),
         sigma: parseFloat(volatility),
         option_type: optionType,
-        N: 50
+        // --- FIX IS HERE: Use the state variable, not hardcoded 50 ---
+        N: parseInt(steps) 
       }
-      const res = await axios.post('/api/options/pricing', payload)
-      setPrices({
-        bs: res.data.bs.Price,
-        crr: res.data.crr.Price
-      })
+      
+      // Parallel Request: Prices + Visuals
+      const [priceRes, visualRes] = await Promise.all([
+         axios.post('/api/options/pricing', payload),
+         axios.post('/api/options/visuals', payload)
+      ])
+
+      setPrices({ bs: priceRes.data.bs.Price, crr: priceRes.data.crr.Price })
+      setVisuals(visualRes.data) // Store the Tree and Convergence data
+
     } catch (err) {
       console.error(err)
     } finally {
@@ -75,20 +87,18 @@ export default function OptionsView() {
   }
 
   useEffect(() => {
-    if (isFitData) {
-      fetchMarketData(selectedTicker)
-    } else {
-        setMarketData(null)
-    }
+    if (isFitData) fetchMarketData(selectedTicker)
+    else setMarketData(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFitData, selectedTicker])
 
+  // This effect ensures it updates when you drag the slider OR click update
   useEffect(() => {
     const timer = setTimeout(() => {
         if (spot && strike && volatility) calculatePrices()
     }, 500)
     return () => clearTimeout(timer)
-  }, [spot, strike, volatility, rate, maturity, optionType])
+  }, [spot, strike, volatility, rate, maturity, optionType, steps])
 
   // --- STYLES ---
   const labelStyle = { 
@@ -155,12 +165,12 @@ export default function OptionsView() {
       {/* 2. CONTROLS */}
       <div className="controls" style={{ 
           display: 'flex', 
-          alignItems: 'flex-end', // Aligns inputs to bottom so labels stack upwards
+          alignItems: 'flex-end', 
           gap: '20px', 
           paddingBottom: '20px', 
           borderBottom: '1px solid #333', 
           marginBottom: '25px',
-          height: '90px' // Increased height slightly to accommodate labels
+          height: '90px' 
       }}>
         
         {/* LEFT: ARBITRARY / MARKET INPUTS */}
@@ -208,15 +218,15 @@ export default function OptionsView() {
         {/* MIDDLE: FIT DATA TOGGLE */}
         <div style={{ 
             display: 'flex', 
-            alignItems: 'center', // Keep toggle centered vertically relative to inputs
+            alignItems: 'center', 
             gap: '10px', 
             marginLeft: '10px', 
             marginRight: '10px', 
             borderLeft: '1px solid #333', 
             borderRight: '1px solid #333', 
             padding: '0 20px',
-            height: '35px', // Match input height roughly
-            marginBottom: '2px' // Fine tune alignment
+            height: '35px', 
+            marginBottom: '2px' 
         }}>
             <label style={{ 
                 color: '#fff', fontSize: '11px', fontWeight: 'bold', 
@@ -253,7 +263,21 @@ export default function OptionsView() {
                     style={{ width: '80px', color: 'var(--color-primary)', fontWeight: 'bold' }} 
                 />
             </div>
-            
+            {/* STEPS SLIDER */}
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>STEPS (N={steps})</label>
+                <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
+                    <input 
+                        type="range" 
+                        min="10" 
+                        max="200" 
+                        step="5"
+                        value={steps} 
+                        onChange={e => setSteps(e.target.value)} 
+                        style={{ width: '100px', accentColor: '#fbbf24', cursor: 'pointer' }} 
+                    />
+                </div>
+            </div>
             <div style={inputGroupStyle}>
                 <label style={labelStyle}>OPTION TYPE</label>
                 <select value={optionType} onChange={e => setOptionType(e.target.value)} style={{ width: '80px' }}>
@@ -311,7 +335,7 @@ export default function OptionsView() {
             )}
         </div>
 
-        {/* RIGHT: PRICING BOXES (Updated - No Class) */}
+        {/* RIGHT: PRICING BOXES */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             
             {/* BLACK SCHOLES BOX */}
@@ -320,7 +344,7 @@ export default function OptionsView() {
                 border: '1px solid #00d4ff', // All around Blue
                 boxShadow: '0 0 15px rgba(0, 212, 255, 0.1)', 
                 background: 'rgba(0, 212, 255, 0.03)',
-                borderRadius: '4px' // Manually added since class is gone
+                borderRadius: '4px' 
             }}>
                 <div style={{ fontSize: '16px', color: '#00d4ff', marginBottom: '8px', letterSpacing: '1px', fontWeight: 'bold' }}>BLACK SCHOLES</div>
                 <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', fontFamily: 'var(--font-mono)' }}>
@@ -346,9 +370,62 @@ export default function OptionsView() {
 
       </div>
 
-      {/* 4. FUTURE CONTENT PLACEHOLDER */}
-      <div style={{ marginTop: '20px', height: '150px', border: '1px dashed #333', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
-        [ PART 2: GREEKS & SENSITIVITY ANALYSIS MODULE ]
+      {/* 4. SEPARATOR: CONVERGENCE HEADER */}
+      <div style={{ margin: '40px 0 20px 0', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '4px', height: '24px', background: '#fbbf24', boxShadow: '0 0 12px rgba(251, 191, 36, 0.5)' }}></div>
+          <h2 style={{ fontSize: '16px', color: '#fbbf24', margin: 0, letterSpacing: '1px' }}>
+              CONVERGENCE ANALYSIS (N={steps})
+          </h2>
+          <div style={{ height: '1px', background: '#333', flex: 1, marginLeft: '10px' }}></div>
+      </div>
+
+      {/* 5. CONVERGENCE GRID (8x2) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', height: '600px', marginBottom: '40px' }}>
+        
+        {/* LEFT: CONVERGENCE PLOTS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="bloomberg-panel" style={{ flex: 1, padding: '10px' }}>
+                {visuals ? (
+                    <ConvergenceChart 
+                        data={visuals.convergence} 
+                        dataKeyLine="crr_price" 
+                        dataKeyConstant="bs_price" 
+                        color="#00d4ff" 
+                        title="Price Convergence (CRR → BS)" 
+                    />
+                ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '10px'}}>CALCULATING...</div>}
+            </div>
+
+            <div className="bloomberg-panel" style={{ flex: 1, padding: '10px' }}>
+                {visuals ? (
+                    <ConvergenceChart 
+                        data={visuals.convergence} 
+                        dataKeyLine="crr_delta" 
+                        dataKeyConstant="bs_delta" 
+                        color="#a855f7" 
+                        title="Delta Convergence (CRR → BS)" 
+                    />
+                ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '10px'}}>CALCULATING...</div>}
+            </div>
+        </div>
+
+        {/* RIGHT: TREE */}
+        <div style={{ 
+            border: '1px solid #fbbf24', 
+            boxShadow: '0 0 15px rgba(251, 191, 36, 0.1)', 
+            background: 'rgba(251, 191, 36, 0.02)',
+            borderRadius: '4px',
+            padding: '10px',
+            position: 'relative'
+        }}>
+            <div style={{ position: 'absolute', top: 10, left: 15, fontSize: '10px', color: '#fbbf24', fontWeight: 'bold', letterSpacing: '1px' }}>
+                BINOMIAL LATTICE (SIMPLIFIED VISUAL)
+            </div>
+            {visuals ? (
+                <BinomialTreeChart data={visuals.tree} />
+            ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24', fontSize: '10px'}}>GENERATING LATTICE...</div>}
+        </div>
+
       </div>
 
     </div>

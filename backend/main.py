@@ -18,7 +18,9 @@ import numpy as np
 from options import (
     calculate_black_scholes,
     calculate_crr_tree,
-    simulate_delta_hedging
+    simulate_delta_hedging,
+    get_binom_tree_data,  
+    get_convergence_data   
 )
 
 # --- 1. LOGGING CONFIGURATION ---
@@ -251,4 +253,36 @@ def get_index_data(ticker: str, period: str = "5y"):
 
     except Exception as e:
         logger.error(f"Market data error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/api/options/visuals")
+def get_option_visuals(request: OptionPricingRequest):
+    """Returns data for Tree and Convergence charts"""
+    try:
+        # 1. Tree Data
+        # VISUAL SAFETY: We cap the visual tree at 18 steps. 
+        # Drawing 200 steps (SVG) is impossible for a browser to render smoothly.
+        # This makes the tree look "denser" as you drag the slider, up to a limit.
+        visual_steps = min(request.N, 18)
+        
+        tree_data = get_binom_tree_data(
+            request.S, request.K, request.T, request.r, request.sigma, 
+            request.option_type, 
+            N=visual_steps # Now uses the slider value (capped)
+        )
+        
+        # 2. Convergence Data
+        # This uses the FULL N (up to 200) for the charts.
+        conv_data = get_convergence_data(
+            request.S, request.K, request.T, request.r, request.sigma, 
+            request.option_type, 
+            N=request.N # Now uses the slider value (uncapped)
+        )
+        
+        return {
+            "tree": tree_data,
+            "convergence": conv_data
+        }
+    except Exception as e:
+        logger.error(f"Visuals error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
