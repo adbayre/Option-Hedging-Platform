@@ -18,8 +18,7 @@ import numpy as np
 from options import (
     calculate_black_scholes,
     calculate_crr_tree,
-    simulate_delta_hedging,
-    calculate_stress_scenarios
+    simulate_delta_hedging
 )
 
 # --- 1. LOGGING CONFIGURATION ---
@@ -53,7 +52,7 @@ class HedgingRequest(BaseModel):
 
 
 # --- 3. FASTAPI SETUP ---
-app = FastAPI(title="HADES Derivatives Engine")
+app = FastAPI(title="Derivatives Engine")
 
 app.add_middleware(
     CORSMiddleware,
@@ -114,18 +113,6 @@ def get_hedging_simulation(request: HedgingRequest):
         logger.error(f"Hedging simulation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/options/stress")
-def get_option_stress_test(request: OptionPricingRequest):
-    """Calculate P&L under shock scenarios"""
-    try:
-        results = calculate_stress_scenarios(
-            request.S, request.K, request.T, request.r, request.sigma, request.option_type
-        )
-        return results
-    except Exception as e:
-        logger.error(f"Stress test error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/api/options/chain/{ticker}")
 def get_option_chain_data(ticker: str, spot: float, option_type: str = "Call"):
     """Fetch real option chain for Volatility Surface (simplified)"""
@@ -161,4 +148,107 @@ def get_option_chain_data(ticker: str, spot: float, option_type: str = "Call"):
         
     except Exception as e:
         logger.error(f"Option chain fetch error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+quote_cache = {}
+CACHE_DURATION = 60
+
+@app.get("/api/asset/{ticker}/realtime")
+def get_realtime_asset(ticker: str):
+    ticker = ticker.upper()
+    current_time = time.time()
+
+    # Check Cache
+    if ticker in quote_cache:
+        cached_item = quote_cache[ticker]
+        if current_time < cached_item["expiry"]:
+            return cached_item["data"]
+
+    try:
+        stock = yf.Ticker(ticker)
+        try:
+            # fast_info is faster and more reliable for real-time price
+            price = stock.fast_info["last_price"]
+            prev_close = stock.fast_info["previous_close"]
+            
+            if price is None:
+                # Fallback to history if fast_info fails
+                hist = stock.history(period="1d")
+                if hist.empty:
+                    raise ValueError("No data found")
+                price = hist["Close"].iloc[-1]
+                prev_close = hist["Open"].iloc[0] # Approx fallback
+                
+        except Exception:
+            raise HTTPException(status_code=404, detail=f"Ticker '{ticker}' not found")
+
+        change = price - prev_close
+        pct_change = (change / prev_close) * 100
+
+        data = {
+            "symbol": ticker,
+            "price": round(price, 2),
+            "change": round(change, 2),
+            "pct_change": round(pct_change, 2),
+            "last_updated": datetime.now().strftime("%H:%M:%S"),
+        }
+        
+        # Update Cache
+        quote_cache[ticker] = {"data": data, "expiry": current_time + CACHE_DURATION}
+        return data
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Realtime fetch failed: {e}")
+        raise HTTPException(status_code=503, detail="Network Error")
+
+# --- Market Data Endpoint for "Fit Data" Mode ---
+@app.get("/api/market/index/{ticker}")
+def get_index_data(ticker: str, period: str = "5y"):
+    try:
+        # 1. Fetch Data
+        stock = yf.Ticker(ticker)
+        # Fetch slightly more data to calculate volatility accurately
+        df = stock.history(period=period)
+        
+        if df.empty:
+            raise HTTPException(status_code=404, detail="Ticker not found")
+            
+        # 2. Calculate "Fitted" Parameters
+        current_price = df["Close"].iloc[-1]
+        
+        # Calculate Volatility (Annualized Std Dev of Log Returns)
+        df["Log_Ret"] = np.log(df["Close"] / df["Close"].shift(1))
+        annualized_vol = df["Log_Ret"].std() * np.sqrt(252)
+        
+        # Risk Free Rate (Using 10Y Treasury as proxy, or default to 4.5%)
+        # For speed, we will hardcode a realistic default if TNX fails, or fetch it
+        try:
+            tnx = yf.Ticker("^TNX")
+            rate = tnx.fast_info["last_price"] / 100
+        except:
+            rate = 0.045
+
+        # 3. Format Data for Chart
+        df.reset_index(inplace=True)
+        chart_data = []
+        for _, row in df.iterrows():
+            chart_data.append({
+                "time": row["Date"].strftime("%Y-%m-%d"),
+                "open": row["Open"],
+                "high": row["High"],
+                "low": row["Low"],
+                "close": row["Close"]
+            })
+
+        return {
+            "spot": round(current_price, 2),
+            "volatility": round(annualized_vol, 4),
+            "rate": round(rate, 4),
+            "chart_data": chart_data
+        }
+
+    except Exception as e:
+        logger.error(f"Market data error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

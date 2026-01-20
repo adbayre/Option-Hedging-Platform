@@ -107,6 +107,67 @@ def calculate_crr_delta(S, K, T, r, sigma, N, option_type="Call"):
     
     return float((Cu - Cd) / (Su - Sd))
 
+def get_binom_tree_data(S, K, T, r, sigma, option_type="Call", N=8):
+    """
+    Generates nodes and edges for a visual Binomial Tree (limited to N steps).
+    """
+    dt = T / N
+    u = np.exp(sigma * np.sqrt(dt))
+    d = 1 / u
+    p = (np.exp(r * dt) - d) / (u - d)
+    
+    # 1. Generate Prices at each node
+    # tree_nodes = [ {'step': i, 'price': P, 'option': V} ]
+    nodes = []
+    edges = []
+    
+    # We calculate backwards for option values, but we need forward for Spot tree
+    # Let's just do Spot Tree for visualization as it's more intuitive for "Price Tree"
+    
+    # Forward pass: Spot Prices
+    spot_tree = []
+    for i in range(N + 1):
+        step_nodes = []
+        for j in range(i + 1):
+            price = S * (u ** (i - j)) * (d ** j)
+            node_id = f"{i}_{j}"
+            step_nodes.append({"id": node_id, "x": i, "y": price, "label": f"{price:.2f}"})
+            
+            # Create edges from previous step
+            if i > 0:
+                if j < i: # Connect from upper parent (i-1, j)
+                    edges.append({"source": f"{i-1}_{j}", "target": node_id})
+                if j > 0: # Connect from lower parent (i-1, j-1)
+                    edges.append({"source": f"{i-1}_{j-1}", "target": node_id})
+        spot_tree.append(step_nodes)
+        nodes.extend(step_nodes)
+
+    return {"nodes": nodes, "edges": edges}
+
+def get_convergence_data(S, K, T, r, sigma, option_type="Call"):
+    """
+    Calculates CRR Price & Delta vs Black Scholes for N = 10 to 100
+    """
+    # 1. Get Constant Black Scholes Benchmark
+    bs = calculate_black_scholes(S, K, T, r, sigma, option_type)
+    bs_price = bs['Price']
+    bs_delta = bs['Delta']
+
+    data = []
+    
+    # 2. Loop N from 5 to 100
+    for n in range(5, 101, 5): # Step 5
+        res = calculate_crr_tree(S, K, T, r, sigma, n, option_type)
+        data.append({
+            "steps": n,
+            "crr_price": res['Price'],
+            "bs_price": bs_price,
+            "crr_delta": res['Delta'],
+            "bs_delta": bs_delta
+        })
+        
+    return data
+
 # =============================================================================
 # 3. MONTE CARLO SIMULATION
 # =============================================================================
@@ -193,38 +254,3 @@ def simulate_delta_hedging(S0, K, T, r, sigma, n_steps, n_paths, option_type="Ca
         "hedging_errors": hedging_errors.tolist(), # Full list for histogram
         "time_steps": list(np.linspace(0, T, n_steps + 1))
     }
-
-# =============================================================================
-# 4. SCENARIO ANALYSIS
-# =============================================================================
-
-def calculate_stress_scenarios(S, K, T, r, sigma, option_type="Call"):
-    """
-    Calculate P&L under various shock scenarios.
-    """
-    scenarios = [
-        {"name": "Crash -20%", "spot_chg": -0.20, "vol_chg": 0.50},
-        {"name": "Bear -10%", "spot_chg": -0.10, "vol_chg": 0.25},
-        {"name": "Base Case", "spot_chg": 0.00, "vol_chg": 0.00},
-        {"name": "Bull +10%", "spot_chg": 0.10, "vol_chg": -0.10},
-        {"name": "Rally +20%", "spot_chg": 0.20, "vol_chg": -0.20},
-    ]
-    
-    base_price = calculate_black_scholes(S, K, T, r, sigma, option_type)["Price"]
-    results = []
-    
-    for scen in scenarios:
-        new_S = S * (1 + scen["spot_chg"])
-        new_sigma = max(0.05, sigma * (1 + scen["vol_chg"]))
-        new_price = calculate_black_scholes(new_S, K, T, r, new_sigma, option_type)["Price"]
-        pnl = new_price - base_price
-        
-        results.append({
-            "name": scen["name"],
-            "spot": float(new_S),
-            "vol": float(new_sigma),
-            "price": float(new_price),
-            "pnl": float(pnl)
-        })
-        
-    return results

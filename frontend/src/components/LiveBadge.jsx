@@ -38,7 +38,7 @@ export default function LiveBadge({ ticker, isLive = true }) {
 
     useEffect(() => {
         if (isLive) {
-            const interval = setInterval(fetchQuote, 60000); 
+            const interval = setInterval(fetchQuote, 30000); 
             return () => clearInterval(interval);
         }
     }, [isLive, debouncedTicker]); 
