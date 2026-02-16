@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import OptionsView from './OptionsView'
 import VolSurfaceView from './VolSurfaceView'
+import HedgingView from './HedgingView'
 import Clock from './components/Clock'
 import './App.css'
 
@@ -11,7 +12,8 @@ function App() {
   // Navigation Items
   const tabs = [
     { id: 'options', label: 'PRICING & HEDGING' },
-    { id: 'surface', label: 'VOLATILITY SURFACE' }
+    { id: 'surface', label: 'VOLATILITY SURFACE' },
+    { id: 'hedging', label: 'BACKTEST SIMULATION' }
   ];
 
   return (
@@ -62,6 +64,11 @@ function App() {
         {/* Tab 2: Volatility Surface */}
         <div style={{ display: activeTab === 'surface' ? 'block' : 'none', height: '100%' }}>
           <VolSurfaceView />
+        </div>
+
+        {/* Tab 3: Backtest Simulation */}
+        <div style={{ display: activeTab === 'hedging' ? 'block' : 'none', height: '100%' }}>
+          <HedgingView />
         </div>
 
       </main>

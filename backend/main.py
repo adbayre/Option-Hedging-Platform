@@ -21,7 +21,8 @@ from options import (
     simulate_delta_hedging,
     get_binom_tree_data,  
     get_convergence_data,   
-    get_volatility_surface_data
+    get_volatility_surface_data,
+    backtest_delta_hedging
 )
 
 # --- 1. LOGGING CONFIGURATION ---
@@ -53,7 +54,11 @@ class HedgingRequest(BaseModel):
     n_steps: int = 52
     n_paths: int = 100
 
-
+class BacktestRequest(BaseModel):
+    ticker: str
+    start_date: str
+    end_date: str
+    
 # --- 3. FASTAPI SETUP ---
 app = FastAPI(title="Derivatives Engine")
 
@@ -294,3 +299,7 @@ def get_option_visuals(request: OptionPricingRequest):
     except Exception as e:
         logger.error(f"Visuals error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+@app.post("/api/options/backtest")
+def run_backtest(req: BacktestRequest):
+    data = backtest_delta_hedging(req.ticker, req.start_date, req.end_date)
+    return data

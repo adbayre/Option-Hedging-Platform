@@ -291,3 +291,103 @@ def _generate_dummy_surface(spot):
         "put":  {"x": grid_x.tolist(), "y": grid_y.tolist(), "z": (0.22 + skew_p + term).tolist()},
         "current_price": spot
     }
+
+def backtest_delta_hedging(ticker, start_date, end_date, strike_pct=1.0, volatility_window=30):
+    """
+    Backtests a Delta Hedging strategy on REAL historical data.
+    """
+    print(f"--- Backtesting Hedging for {ticker} ---")
+    
+    try:
+        # 1. Fetch Historical Data
+        stock = yf.Ticker(ticker)
+        # Fetch slightly more data to calculate rolling volatility
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        fetch_start = (start_dt - timedelta(days=60)).strftime("%Y-%m-%d")
+        
+        df = stock.history(start=fetch_start, end=end_date)
+        
+        if df.empty:
+            return {"error": "No data found for this range"}
+
+        # 2. Setup Backtest
+        # We start the "Option Trade" on the date provided by user
+        mask = df.index >= start_date
+        sim_data = df.loc[mask].copy()
+        
+        if len(sim_data) < 5:
+            return {"error": "Date range too short"}
+
+        # Initial Parameters
+        S0 = sim_data['Close'].iloc[0]
+        K = S0 * strike_pct
+        r = 0.045 # Assume fixed risk-free rate for simplicity
+        T_total = len(sim_data) / 252.0 # Total duration in years
+        
+        # Calculate Rolling Volatility (Realized Vol) for pricing
+        # In reality, traders use Implied Vol, but for backtest we use 30d Realized as proxy
+        df['LogRet'] = np.log(df['Close'] / df['Close'].shift(1))
+        df['RealizedVol'] = df['LogRet'].rolling(window=volatility_window).std() * np.sqrt(252)
+        
+        # Merge vol back to sim_data
+        sim_data['Vol'] = df.loc[mask, 'RealizedVol'].fillna(0.20) # Default to 20% if NaN
+
+        # 3. Run Simulation Loop
+        cash = 0
+        shares = 0
+        portfolio_values = []
+        deltas = []
+        stock_prices = []
+        
+        # Sell Call Option at t=0
+        sigma_0 = sim_data['Vol'].iloc[0]
+        initial_opt = calculate_black_scholes(S0, K, T_total, r, sigma_0, "Call")
+        premium_received = initial_opt['Price']
+        
+        # Initial Portfolio = Cash (Premium)
+        cash += premium_received
+        
+        for i in range(len(sim_data)):
+            date = sim_data.index[i]
+            S_t = sim_data['Close'].iloc[i]
+            sigma_t = sim_data['Vol'].iloc[i]
+            
+            # Time remaining
+            days_left = len(sim_data) - i
+            T_left = days_left / 252.0
+            
+            if T_left < 1e-5: break # Expiry
+            
+            # Calculate Option Price & Delta
+            bs = calculate_black_scholes(S_t, K, T_left, r, sigma_t, "Call")
+            current_option_price = bs['Price']
+            current_delta = bs['Delta']
+            
+            # Rebalance Hedge (Delta Neutral)
+            # We are SHORT the call, so we need to be LONG `Delta` shares
+            shares_needed = current_delta - shares
+            cost_to_buy = shares_needed * S_t
+            
+            cash -= cost_to_buy
+            shares = current_delta # Update position
+            
+            # Portfolio Value = Cash + Stock Value - Option Liability
+            # If hedge is perfect, this line should be flat (risk-free rate growth)
+            pf_value = cash + (shares * S_t) - current_option_price
+            
+            portfolio_values.append(pf_value)
+            deltas.append(current_delta)
+            stock_prices.append(S_t)
+
+        return {
+            "dates": [d.strftime("%Y-%m-%d") for d in sim_data.index[:len(portfolio_values)]],
+            "portfolio": portfolio_values,
+            "stock": stock_prices,
+            "delta": deltas,
+            "initial_cost": premium_received,
+            "strike": K
+        }
+
+    except Exception as e:
+        print(f"Backtest Error: {e}")
+        return {"error": str(e)}
