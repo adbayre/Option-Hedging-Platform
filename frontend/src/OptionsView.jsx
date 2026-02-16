@@ -409,21 +409,42 @@ export default function OptionsView() {
             </div>
         </div>
 
-        {/* RIGHT: TREE */}
+{/* RIGHT: TREE */}
         <div style={{ 
             border: '1px solid #fbbf24', 
             boxShadow: '0 0 15px rgba(251, 191, 36, 0.1)', 
             background: 'rgba(251, 191, 36, 0.02)',
             borderRadius: '4px',
-            padding: '10px',
-            position: 'relative'
+            // *** KEY FIXES BELOW ***
+            padding: '0px',         // Remove padding so chart hits edges
+            position: 'relative',
+            overflow: 'hidden',     // Cut off anything that tries to escape
+            display: 'flex',        // Ensure child fills space
+            flexDirection: 'column'
         }}>
-            <div style={{ position: 'absolute', top: 10, left: 15, fontSize: '10px', color: '#fbbf24', fontWeight: 'bold', letterSpacing: '1px' }}>
+            <div style={{ 
+                position: 'absolute', 
+                top: 10, 
+                left: 15, 
+                zIndex: 10, // Ensure text stays on top of chart 
+                fontSize: '10px', 
+                color: '#fbbf24', 
+                fontWeight: 'bold', 
+                letterSpacing: '1px',
+                pointerEvents: 'none' // Click through text to drag chart
+            }}>
                 BINOMIAL LATTICE (SIMPLIFIED VISUAL)
             </div>
+            
             {visuals ? (
-                <BinomialTreeChart data={visuals.tree} />
-            ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24', fontSize: '10px'}}>GENERATING LATTICE...</div>}
+                <div style={{ flex: 1, width: '100%', height: '100%' }}>
+                    <BinomialTreeChart data={visuals.tree} />
+                </div>
+            ) : (
+                <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24', fontSize: '10px'}}>
+                    GENERATING LATTICE...
+                </div>
+            )}
         </div>
 
       </div>

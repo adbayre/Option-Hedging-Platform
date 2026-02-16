@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import OptionsView from './OptionsView'
+import VolSurfaceView from './VolSurfaceView'
 import Clock from './components/Clock'
 import './App.css'
 
 function App() {
-  // Since there is only one view, we don't strictly need state for tabs,
-  // but keeping the structure allows you to add more "Option" related tabs later (e.g. Vol Surface)
+  // State for active tab
   const [activeTab, setActiveTab] = useState('options')
+
+  // Navigation Items
+  const tabs = [
+    { id: 'options', label: 'PRICING & HEDGING' },
+    { id: 'surface', label: 'VOLATILITY SURFACE' }
+  ];
 
   return (
     <div className="app-container">
+      
       {/* --- HEADER --- */}
       <header className="bloomberg-header">
         <div className="brand-section">
@@ -22,10 +29,9 @@ function App() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Clock />
-          {/* You can keep or remove the report button depending on if you want PDF/Excel exports for options */}
           <button 
             className="btn-download"
-            onClick={() => alert("Export feature coming soon for Options data")}
+            onClick={() => alert("Export feature coming soon")}
           >
             EXPORT DATA
           </button>
@@ -34,11 +40,7 @@ function App() {
 
       {/* --- NAVIGATION --- */}
       <nav className="main-nav">
-        {[
-          { id: 'options', label: 'PRICING & HEDGING' },
-          // You can add more option-specific tabs here later, e.g.:
-          // { id: 'surface', label: 'VOLATILITY SURFACE' }
-        ].map(tab => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -51,9 +53,17 @@ function App() {
 
       {/* --- MAIN CONTENT --- */}
       <main className="main-content">
+        
+        {/* Tab 1: Pricing & Hedging Lab */}
         <div style={{ display: activeTab === 'options' ? 'block' : 'none', height: '100%' }}>
           <OptionsView />
         </div>
+
+        {/* Tab 2: Volatility Surface */}
+        <div style={{ display: activeTab === 'surface' ? 'block' : 'none', height: '100%' }}>
+          <VolSurfaceView />
+        </div>
+
       </main>
 
       {/* --- FOOTER --- */}

@@ -1039,3 +1039,509 @@ ValueError: Cannot set a DataFrame with multiple columns to the single column BT
 2026-01-20 21:50:51,162 [ERROR] Visuals error: 'Delta'
 2026-01-20 21:50:53,987 [ERROR] Visuals error: 'Delta'
 2026-01-20 21:50:57,106 [ERROR] Visuals error: 'Delta'
+2026-02-16 19:58:26,342 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 19:58:26,870 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 20:23:06,209 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 20:23:06,443 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 20:23:23,854 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 20:23:24,217 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+2026-02-16 22:01:48,786 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+when serializing dict item 'call'
+2026-02-16 22:01:49,087 [CRITICAL] CRITICAL SERVER ERROR: Out of range float values are not JSON compliant: nan
+Traceback (most recent call last):
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\main.py", line 73, in global_exception_handler
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\fastapi\routing.py", line 389, in app
+    response = actual_response_class(content, **response_args)
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 189, in __init__
+    super().__init__(content, status_code, headers, media_type, background)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 46, in __init__
+    self.body = self.render(content)
+                ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\Adrien\OneDrive\Documents\ESILV\Annee_4\PI2\ReactApp\Option-Hedging-Platform\backend\venv\Lib\site-packages\starlette\responses.py", line 192, in render
+    return json.dumps(
+           ~~~~~~~~~~^
+        content,
+        ^^^^^^^^
+    ...<3 lines>...
+        separators=(",", ":"),
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ).encode("utf-8")
+    ^
+  File "C:\Python314\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Python314\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Python314\Lib\json\encoder.py", line 261, in iterencode
+    return _iterencode(o, 0)
+ValueError: Out of range float values are not JSON compliant: nan
+when serializing list item 0
+when serializing list item 0
+when serializing dict item 'z'
+when serializing dict item 'call'

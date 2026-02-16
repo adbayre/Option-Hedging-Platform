@@ -20,7 +20,8 @@ from options import (
     calculate_crr_tree,
     simulate_delta_hedging,
     get_binom_tree_data,  
-    get_convergence_data   
+    get_convergence_data,   
+    get_volatility_surface_data
 )
 
 # --- 1. LOGGING CONFIGURATION ---
@@ -154,6 +155,13 @@ def get_option_chain_data(ticker: str, spot: float, option_type: str = "Call"):
     
 quote_cache = {}
 CACHE_DURATION = 60
+
+@app.get("/api/options/surface/{ticker}")
+def get_surface(ticker: str):
+    data = get_volatility_surface_data(ticker)
+    if not data:
+        raise HTTPException(status_code=404, detail="Not enough option data for surface")
+    return data
 
 @app.get("/api/asset/{ticker}/realtime")
 def get_realtime_asset(ticker: str):
