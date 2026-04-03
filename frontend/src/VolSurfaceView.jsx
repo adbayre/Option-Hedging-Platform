@@ -9,7 +9,7 @@ export default function VolSurfaceView() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA'];
+    const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA', '^FCHI'];
 
     const fetchSurface = async () => {
         setLoading(true);

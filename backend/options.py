@@ -220,29 +220,37 @@ def get_volatility_surface_data(ticker):
 
                 opt = stock.option_chain(exp_date_str)
                 
-                # Calls
+                # --- CALLS ---
                 calls = opt.calls
                 mask_c = (calls['strike'] > current_price * 0.75) & (calls['strike'] < current_price * 1.25)
                 for _, row in calls[mask_c].iterrows():
                     iv = row['impliedVolatility']
-                    if 0.05 < iv < 2.0:
+                    open_interest = row.get('openInterest', 0)
+                    
+                    # FIX: Filter out 0 Open Interest to remove after-hours ghost pricing
+                    if 0.05 < iv < 2.0 and open_interest > 0:
                         call_points.append([row['strike'], days_to_maturity, iv])
 
-                # Puts
+                # --- PUTS ---
                 puts = opt.puts
                 mask_p = (puts['strike'] > current_price * 0.75) & (puts['strike'] < current_price * 1.25)
                 for _, row in puts[mask_p].iterrows():
                     iv = row['impliedVolatility']
-                    if 0.05 < iv < 2.0:
+                    open_interest = row.get('openInterest', 0)
+                    
+                    # FIX: Filter out 0 Open Interest to remove after-hours ghost pricing
+                    if 0.05 < iv < 2.0 and open_interest > 0:
                         put_points.append([row['strike'], days_to_maturity, iv])
 
             except Exception:
                 continue
 
+        # Check if the liquidity filter removed too many points
         if len(call_points) < 10 or len(put_points) < 10:
+            print("Not enough liquid option data found. Returning simulation.")
             return _generate_dummy_surface(current_price)
 
-        # --- HELPER FUNCTION: Interpolates AND Removes NaNs ---
+        # Interpolate and clean NaNs for JSON
         def interpolate_grid(data_points):
             points = np.array(data_points)
             x_raw = points[:, 0]
@@ -255,8 +263,6 @@ def get_volatility_surface_data(ticker):
             ]
             grid_z = griddata(points[:, :2], z_raw, (grid_x, grid_y), method='linear')
             
-            # CRITICAL FIX: Convert Numpy Array to List and replace NaNs with None
-            # JSON cannot handle 'nan', so we must swap them for None (which becomes null)
             z_list = grid_z.tolist()
             clean_z = []
             for row in z_list:
@@ -338,7 +344,7 @@ def backtest_delta_hedging(ticker, start_date, end_date, strike_pct=1.0, volatil
         portfolio_values = []
         deltas = []
         stock_prices = []
-        
+        option_prices = []
         # Sell Call Option at t=0
         sigma_0 = sim_data['Vol'].iloc[0]
         initial_opt = calculate_black_scholes(S0, K, T_total, r, sigma_0, "Call")
@@ -378,12 +384,14 @@ def backtest_delta_hedging(ticker, start_date, end_date, strike_pct=1.0, volatil
             portfolio_values.append(pf_value)
             deltas.append(current_delta)
             stock_prices.append(S_t)
+            option_prices.append(current_option_price)
 
         return {
             "dates": [d.strftime("%Y-%m-%d") for d in sim_data.index[:len(portfolio_values)]],
             "portfolio": portfolio_values,
             "stock": stock_prices,
             "delta": deltas,
+            "option_price": option_prices,
             "initial_cost": premium_received,
             "strike": K
         }

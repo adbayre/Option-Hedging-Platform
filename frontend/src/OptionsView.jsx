@@ -31,7 +31,7 @@ export default function OptionsView() {
   const [visuals, setVisuals] = useState(null)
 
   // INDEX OPTIONS
-  const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA']
+  const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA', '^FCHI']
 
   // --- FETCH MARKET DATA ---
   const fetchMarketData = async (ticker) => {

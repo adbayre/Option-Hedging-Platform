@@ -2,6 +2,7 @@ import { useState } from 'react'
 import OptionsView from './OptionsView'
 import VolSurfaceView from './VolSurfaceView'
 import HedgingView from './HedgingView'
+import StochasticVolView from './StochasticVolView' // --- NEW IMPORT ---
 import Clock from './components/Clock'
 import './App.css'
 
@@ -13,7 +14,8 @@ function App() {
   const tabs = [
     { id: 'options', label: 'PRICING & HEDGING' },
     { id: 'surface', label: 'VOLATILITY SURFACE' },
-    { id: 'hedging', label: 'BACKTEST SIMULATION' }
+    { id: 'hedging', label: 'BACKTEST SIMULATION' },
+    { id: 'stochastic', label: 'STOCHASTIC VOL (WIP)' } // --- NEW TAB ---
   ];
 
   return (
@@ -69,6 +71,11 @@ function App() {
         {/* Tab 3: Backtest Simulation */}
         <div style={{ display: activeTab === 'hedging' ? 'block' : 'none', height: '100%' }}>
           <HedgingView />
+        </div>
+
+        {/* Tab 4: Stochastic Volatility (WIP) */}
+        <div style={{ display: activeTab === 'stochastic' ? 'block' : 'none', height: '100%' }}>
+          <StochasticVolView />
         </div>
 
       </main>
