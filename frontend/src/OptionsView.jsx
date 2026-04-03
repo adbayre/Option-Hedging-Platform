@@ -1,283 +1,453 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
-import StrategyMetricCard from './components/StrategyMetricCard'
+import CandlestickChart from './components/CandlestickChart'
+import LiveBadge from './components/LiveBadge'
+import BinomialTreeChart from './components/BinomialTreeChart'
+import ConvergenceChart from './components/ConvergenceChart'
 
 export default function OptionsView() {
-  // --- INPUT STATE ---
+  // --- STATE ---
+  const [isFitData, setIsFitData] = useState(false)
+  const [selectedTicker, setSelectedTicker] = useState('SPY')
+  
+  // Inputs
   const [spot, setSpot] = useState(100)
-  const [strike, setStrike] = useState(100)
   const [volatility, setVolatility] = useState(0.20)
-  const [timeToMaturity, setTimeToMaturity] = useState(1.0)
-  const [rate, setRate] = useState(0.05)
+  const [rate, setRate] = useState(0.045)
+  
+  // Common Inputs
+  const [strike, setStrike] = useState(100)
+  const [maturity, setMaturity] = useState(1.0)
   const [optionType, setOptionType] = useState('Call')
-  
-  // --- RESULTS STATE ---
-  const [pricing, setPricing] = useState(null)
-  const [stressResults, setStressResults] = useState(null)
-  const [hedgingData, setHedgingData] = useState(null)
-  
-  // --- UI STATE ---
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [isSimulating, setIsSimulating] = useState(false)
-  const [chartKey, setChartKey] = useState(0)
+  const [steps, setSteps] = useState(50) // State is correct
 
-  // 1. CALCULATE PRICING & GREEKS
-  const calculatePricing = async () => {
+  // Data
+  const [marketData, setMarketData] = useState(null)
+  const [prices, setPrices] = useState({ bs: 0, crr: 0 })
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [isFetchingData, setIsFetchingData] = useState(false)
+
+  // Visuals
+  const [visuals, setVisuals] = useState(null)
+
+  // INDEX OPTIONS
+  const indexes = ['SPY', 'QQQ', 'IWM', 'DIA', 'AAPL', 'MSFT', 'NVDA', 'TSLA', '^FCHI']
+
+  // --- FETCH MARKET DATA ---
+  const fetchMarketData = async (ticker) => {
+    setIsFetchingData(true)
+    try {
+      const res = await axios.get(`/api/market/index/${ticker}`)
+      const { spot, volatility, rate, chart_data } = res.data
+      
+      setSpot(spot)
+      setVolatility(volatility)
+      setRate(rate)
+      setMarketData(chart_data)
+      setStrike(spot) 
+      
+    } catch (err) {
+      console.error("Market data fetch failed", err)
+      alert("Failed to fetch market data. Check backend logs.")
+      setIsFitData(false)
+    } finally {
+        setIsFetchingData(false)
+    }
+  }
+
+  // --- CALCULATE PRICES ---
+  const calculatePrices = async () => {
     setIsCalculating(true)
     try {
-      // Prepare Payload
       const payload = {
         S: parseFloat(spot),
         K: parseFloat(strike),
-        T: parseFloat(timeToMaturity),
+        T: parseFloat(maturity),
         r: parseFloat(rate),
         sigma: parseFloat(volatility),
         option_type: optionType,
-        N: 50
+        // --- FIX IS HERE: Use the state variable, not hardcoded 50 ---
+        N: parseInt(steps) 
       }
-
-      // Parallel Requests
-      const [priceRes, stressRes] = await Promise.all([
-        axios.post('/api/options/pricing', payload),
-        axios.post('/api/options/stress', payload)
+      
+      // Parallel Request: Prices + Visuals
+      const [priceRes, visualRes] = await Promise.all([
+         axios.post('/api/options/pricing', payload),
+         axios.post('/api/options/visuals', payload)
       ])
 
-      setPricing(priceRes.data.bs) // Use Black-Scholes for main display
-      setStressResults(stressRes.data)
-      
+      setPrices({ bs: priceRes.data.bs.Price, crr: priceRes.data.crr.Price })
+      setVisuals(visualRes.data) // Store the Tree and Convergence data
+
     } catch (err) {
-      console.error("Pricing Error:", err)
-      alert("Error calculating price. Check inputs.")
+      console.error(err)
     } finally {
       setIsCalculating(false)
     }
   }
 
-  // 2. RUN MONTE CARLO HEDGING
-  const runSimulation = async () => {
-    setIsSimulating(true)
-    try {
-      const payload = {
-        S: parseFloat(spot),
-        K: parseFloat(strike),
-        T: parseFloat(timeToMaturity),
-        r: parseFloat(rate),
-        sigma: parseFloat(volatility),
-        option_type: optionType,
-        n_steps: 52, // Weekly rebalancing
-        n_paths: 20  // Limit paths for clean visualization
-      }
-
-      const response = await axios.post('/api/options/hedging', payload)
-      
-      // Transform Data for Recharts
-      // API returns 'paths' as [[S0, S1...], [S0, S1...]]
-      // We need [{step: 0, path0: 100, path1: 100}, {step: 1, ...}]
-      
-      const rawPaths = response.data.paths
-      const timeSteps = response.data.time_steps
-      
-      const chartData = timeSteps.map((t, stepIdx) => {
-        const point = { time: t.toFixed(2) }
-        rawPaths.forEach((path, pathIdx) => {
-            point[`path_${pathIdx}`] = path[stepIdx]
-        })
-        return point
-      })
-
-      setHedgingData({
-        metrics: {
-            mean_error: response.data.mean_error,
-            std_error: response.data.std_error,
-            initial_cost: response.data.initial_price
-        },
-        chartData: chartData,
-        pathCount: rawPaths.length
-      })
-      
-      setChartKey(prev => prev + 1) // Trigger animation
-
-    } catch (err) {
-      console.error("Simulation Error:", err)
-      alert("Simulation failed.")
-    } finally {
-      setIsSimulating(false)
-    }
-  }
-
-  // Initial Load
   useEffect(() => {
-    calculatePricing()
+    if (isFitData) fetchMarketData(selectedTicker)
+    else setMarketData(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isFitData, selectedTicker])
+
+  // This effect ensures it updates when you drag the slider OR click update
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        if (spot && strike && volatility) calculatePrices()
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [spot, strike, volatility, rate, maturity, optionType, steps])
+
+  // --- STYLES ---
+  const labelStyle = { 
+    fontSize: '9px', 
+    color: 'var(--text-muted)', 
+    marginBottom: '4px', 
+    fontWeight: 'bold', 
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase'
+  };
+
+  const inputGroupStyle = { 
+    display: 'flex', 
+    flexDirection: 'column' 
+  };
 
   return (
     <div className="view-container">
       
-      {/* HEADER */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
-        <div style={{ width: '4px', height: '32px', background: 'var(--color-primary)', boxShadow: '0 0 12px var(--color-primary-glow)' }}></div>
-        <h2 style={{ fontSize: '18px', color: 'var(--color-primary)', margin: 0 }}>DERIVATIVES LAB</h2>
+      {/* 1. HEADER */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        
+        {/* Left: Title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ width: '4px', height: '32px', background: 'var(--color-primary)', boxShadow: '0 0 12px var(--color-primary-glow)' }}></div>
+            <h2 style={{ fontSize: '18px', color: 'var(--color-primary)', margin: 0 }}>DERIVATIVES LAB</h2>
+        </div>
+
+        {/* Right: LIVE BADGE OR MANUAL CARD */}
+        <div>
+            {isFitData ? (
+                <LiveBadge ticker={selectedTicker} isLive={true} />
+            ) : (
+                <div style={{ 
+                    display: 'inline-flex',
+                    minWidth: '300px',
+                    height: '80px',
+                    alignItems: 'center',
+                    padding: '0 16px',
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-subtle)',
+                    borderLeft: '4px solid var(--text-muted)',
+                    borderRadius: '2px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                    justifyContent: 'space-between'
+                }}>
+                    <div style={{ fontFamily: 'var(--font-ticker)', fontWeight: '700', fontSize: '24px', color: 'var(--text-muted)' }}>
+                        CUSTOM
+                    </div>
+                    <div style={{ width: '1px', height: '32px', background: 'var(--border-subtle)' }}></div>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: 'var(--font-price)', fontSize: '22px', fontWeight: '700', color: 'var(--color-primary)' }}>
+                            ${parseFloat(spot).toFixed(2)}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                            MANUAL INPUT
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
       </div>
 
-      {/* CONTROLS (Top Bar) */}
-      <div className="controls" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', paddingBottom: '20px', borderBottom: '1px solid #222', marginBottom: '20px' }}>
+      {/* 2. CONTROLS */}
+      <div className="controls" style={{ 
+          display: 'flex', 
+          alignItems: 'flex-end', 
+          gap: '20px', 
+          paddingBottom: '20px', 
+          borderBottom: '1px solid #333', 
+          marginBottom: '25px',
+          height: '90px' 
+      }}>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>SPOT PRICE ($)</label>
-            <input type="number" value={spot} onChange={(e) => setSpot(e.target.value)} style={{ width: '80px' }} />
+        {/* LEFT: ARBITRARY / MARKET INPUTS */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: isFitData ? 'var(--text-muted)' : '#fff', marginRight: '5px', marginBottom: '8px' }}>
+                ARBITRARY
+            </span>
+            
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>SPOT PRICE ($)</label>
+                <input 
+                    type="number" 
+                    value={spot} 
+                    onChange={e => setSpot(e.target.value)} 
+                    disabled={isFitData}
+                    style={{ width: '80px', opacity: isFitData ? 0.5 : 1 }} 
+                />
+            </div>
+
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>VOLATILITY (σ)</label>
+                <input 
+                    type="number" 
+                    step="0.01" 
+                    value={volatility} 
+                    onChange={e => setVolatility(e.target.value)} 
+                    disabled={isFitData}
+                    style={{ width: '80px', opacity: isFitData ? 0.5 : 1 }} 
+                />
+            </div>
+
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>RISK FREE RATE (r)</label>
+                <input 
+                    type="number" 
+                    step="0.001" 
+                    value={rate} 
+                    onChange={e => setRate(e.target.value)} 
+                    disabled={isFitData}
+                    style={{ width: '80px', opacity: isFitData ? 0.5 : 1 }} 
+                />
+            </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>STRIKE ($)</label>
-            <input type="number" value={strike} onChange={(e) => setStrike(e.target.value)} style={{ width: '80px' }} />
-        </div>
+        {/* MIDDLE: FIT DATA TOGGLE */}
+        <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px', 
+            marginLeft: '10px', 
+            marginRight: '10px', 
+            borderLeft: '1px solid #333', 
+            borderRight: '1px solid #333', 
+            padding: '0 20px',
+            height: '35px', 
+            marginBottom: '2px' 
+        }}>
+            <label style={{ 
+                color: '#fff', fontSize: '11px', fontWeight: 'bold', 
+                display: 'flex', alignItems: 'center', cursor: 'pointer', fontFamily: 'var(--font-mono)' 
+            }}>
+                <input 
+                    type="checkbox" 
+                    checked={isFitData} 
+                    onChange={(e) => setIsFitData(e.target.checked)}
+                    style={{ accentColor: 'var(--color-primary)', marginRight: '8px', cursor: 'pointer' }}
+                />
+                FIT DATA
+            </label>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>VOLATILITY (0.2=20%)</label>
-            <input type="number" step="0.01" value={volatility} onChange={(e) => setVolatility(e.target.value)} style={{ width: '80px' }} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>MATURITY (Yrs)</label>
-            <input type="number" step="0.1" value={timeToMaturity} onChange={(e) => setTimeToMaturity(e.target.value)} style={{ width: '80px' }} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>RATE (0.05=5%)</label>
-            <input type="number" step="0.01" value={rate} onChange={(e) => setRate(e.target.value)} style={{ width: '80px' }} />
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '9px', color: 'var(--text-muted)' }}>TYPE</label>
-            <select value={optionType} onChange={(e) => setOptionType(e.target.value)} style={{ width: '80px', height: '32px' }}>
-                <option value="Call">CALL</option>
-                <option value="Put">PUT</option>
+            <select 
+                value={selectedTicker} 
+                onChange={(e) => setSelectedTicker(e.target.value)}
+                disabled={!isFitData}
+                style={{ minWidth: '100px', opacity: isFitData ? 1 : 0.5 }}
+            >
+                {indexes.map(idx => <option key={idx} value={idx}>{idx}</option>)}
             </select>
         </div>
 
-        <button onClick={calculatePricing} disabled={isCalculating} style={{ marginTop: 'auto', height: '32px' }}>
-            {isCalculating ? 'PRICING...' : 'RE-PRICE'}
-        </button>
+        {/* RIGHT: COMMON OPTIONS */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', marginLeft: 'auto' }}>
+            
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>STRIKE PRICE ($)</label>
+                <input 
+                    type="number" 
+                    value={strike} 
+                    onChange={e => setStrike(e.target.value)} 
+                    style={{ width: '80px', color: 'var(--color-primary)', fontWeight: 'bold' }} 
+                />
+            </div>
+            {/* STEPS SLIDER */}
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>STEPS (N={steps})</label>
+                <div style={{ display: 'flex', alignItems: 'center', height: '32px' }}>
+                    <input 
+                        type="range" 
+                        min="10" 
+                        max="200" 
+                        step="5"
+                        value={steps} 
+                        onChange={e => setSteps(e.target.value)} 
+                        style={{ width: '100px', accentColor: '#fbbf24', cursor: 'pointer' }} 
+                    />
+                </div>
+            </div>
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>OPTION TYPE</label>
+                <select value={optionType} onChange={e => setOptionType(e.target.value)} style={{ width: '80px' }}>
+                    <option value="Call">CALL</option>
+                    <option value="Put">PUT</option>
+                </select>
+            </div>
+            
+            <div style={inputGroupStyle}>
+                <label style={labelStyle}>MATURITY (YRS)</label>
+                <input 
+                    type="number" 
+                    step="0.1" 
+                    value={maturity} 
+                    onChange={e => setMaturity(e.target.value)} 
+                    style={{ width: '60px' }} 
+                />
+            </div>
+            
+            <button onClick={calculatePrices} disabled={isCalculating} style={{ height: '34px', marginBottom: '0px' }}>
+                {isCalculating ? '...' : 'UPDATE'}
+            </button>
+        </div>
 
       </div>
 
-      {/* RESULTS GRID */}
-      {pricing && (
-        <>
-            {/* 1. GREEKS ROW */}
-            <div className="grid-container" style={{ marginBottom: '25px', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-                <StrategyMetricCard title="THEORETICAL PRICE" value={`$${pricing.Price.toFixed(4)}`} color="var(--color-primary)" />
-                <StrategyMetricCard title="DELTA (Δ)" value={pricing.Delta.toFixed(4)} color="#00d4ff" />
-                <StrategyMetricCard title="GAMMA (Γ)" value={pricing.Gamma.toFixed(4)} color="#a855f7" />
-                <StrategyMetricCard title="VEGA (ν)" value={pricing.Vega.toFixed(4)} color="#ffa500" />
-                <StrategyMetricCard title="THETA (Θ)" value={pricing.Theta.toFixed(4)} color="#ff4444" />
+      {/* 3. MAIN CONTENT AREA */}
+      <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '20px', height: '400px' }}>
+        
+        {/* LEFT: CHART */}
+        <div className="bloomberg-panel" style={{ padding: '15px', position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <h3 style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    {isFitData ? `${selectedTicker} • MARKET DATA (5Y)` : 'UNDERLYING ASSET SIMULATION'}
+                </h3>
             </div>
-
-            {/* 2. MAIN PANEL: HEDGING SIMULATION */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '25px' }}>
-                
-                {/* LEFT: HEDGING CHART */}
-                <div className="bloomberg-panel" style={{ padding: '20px', minHeight: '400px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3 style={{ fontSize: '12px', color: 'var(--text-muted)' }}>MONTE CARLO DELTA HEDGING (20 PATHS)</h3>
-                        <button onClick={runSimulation} disabled={isSimulating} style={{ padding: '4px 12px', fontSize: '10px' }}>
-                            {isSimulating ? 'RUNNING...' : 'RUN SIMULATION'}
-                        </button>
+            
+            {isFitData ? (
+                isFetchingData ? (
+                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
+                        LOADING MARKET DATA...
                     </div>
-
-                    {hedgingData ? (
-                        <div style={{ height: '320px', width: '100%' }}>
-                            <ResponsiveContainer key={chartKey}>
-                                <LineChart data={hedgingData.chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                                    <XAxis dataKey="time" stroke="var(--text-muted)" tick={{fontSize: 10}} label={{ value: 'Time (Years)', position: 'insideBottom', offset: -5, fill: '#666', fontSize: 10 }} />
-                                    <YAxis stroke="var(--text-muted)" domain={['auto', 'auto']} tick={{fontSize: 10}} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }} itemStyle={{ fontSize: '12px' }} />
-                                    
-                                    {/* Render a line for each path */}
-                                    {Array.from({ length: hedgingData.pathCount }).map((_, i) => (
-                                        <Line 
-                                            key={i} 
-                                            type="monotone" 
-                                            dataKey={`path_${i}`} 
-                                            stroke="var(--color-primary)" 
-                                            strokeWidth={1} 
-                                            dot={false} 
-                                            strokeOpacity={0.3}
-                                            isAnimationActive={true}
-                                            animationDuration={1500}
-                                        />
-                                    ))}
-                                    
-                                    {/* Strike Line */}
-                                    <Line type="monotone" dataKey={() => strike} stroke="#ff4444" strokeDasharray="3 3" strokeWidth={1} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    ) : (
-                        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                            CLICK "RUN SIMULATION" TO GENERATE PATHS
-                        </div>
-                    )}
+                ) : (
+                    <div style={{ height: '340px', width: '100%' }}>
+                        <CandlestickChart data={marketData} />
+                    </div>
+                )
+            ) : (
+                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '10px', color: '#444' }}>
+                    <div style={{ fontSize: '24px' }}>📊</div>
+                    <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}>
+                        ENABLE "FIT DATA" TO VIEW LIVE CHART
+                    </div>
                 </div>
+            )}
+        </div>
 
-                {/* RIGHT: HEDGING METRICS */}
-                <div className="bloomberg-panel" style={{ padding: '20px' }}>
-                    <h3 style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>HEDGING PERFORMANCE</h3>
-                    {hedgingData ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>MEAN HEDGING ERROR</div>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: hedgingData.metrics.mean_error >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                                    ${hedgingData.metrics.mean_error.toFixed(4)}
-                                </div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>STD DEVIATION (RISK)</div>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#eee' }}>
-                                    ${hedgingData.metrics.std_error.toFixed(4)}
-                                </div>
-                            </div>
-                            <div style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
-                                <div style={{ fontSize: '10px', color: '#888' }}>SIMULATION PARAMETERS</div>
-                                <div style={{ fontSize: '11px', color: '#ccc', marginTop: '5px' }}>
-                                    REBALANCING: WEEKLY<br/>
-                                    MODEL: BLACK-SCHOLES<br/>
-                                    PATHS: 20 (VISUAL)
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>
-                            Run simulation to see hedging error statistics.
-                        </div>
-                    )}
+        {/* RIGHT: PRICING BOXES */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            
+            {/* BLACK SCHOLES BOX */}
+            <div style={{ 
+                flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                border: '1px solid #00d4ff', // All around Blue
+                boxShadow: '0 0 15px rgba(0, 212, 255, 0.1)', 
+                background: 'rgba(0, 212, 255, 0.03)',
+                borderRadius: '4px' 
+            }}>
+                <div style={{ fontSize: '16px', color: '#00d4ff', marginBottom: '8px', letterSpacing: '1px', fontWeight: 'bold' }}>BLACK SCHOLES</div>
+                <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                    ${prices.bs.toFixed(2)}
                 </div>
             </div>
 
-            {/* 3. STRESS TEST CARDS */}
-            <h3 style={{ fontSize: '14px', color: 'var(--color-primary)', marginBottom: '15px', letterSpacing: '1px' }}>STRESS TESTING (SHOCK SCENARIOS)</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px' }}>
-                {stressResults && stressResults.map((scenario, i) => (
-                    <div key={i} className="bloomberg-panel" style={{ 
-                        padding: '15px', 
-                        textAlign: 'center',
-                        borderTop: scenario.pnl >= 0 ? '2px solid var(--color-success)' : '2px solid var(--color-danger)'
-                    }}>
-                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '8px' }}>{scenario.name}</div>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: scenario.pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                            {scenario.pnl >= 0 ? '+' : ''}{scenario.pnl.toFixed(2)}
-                        </div>
-                        <div style={{ fontSize: '9px', color: '#666', marginTop: '5px' }}>
-                            S: {scenario.spot.toFixed(0)} | σ: {scenario.vol.toFixed(2)}
-                        </div>
-                    </div>
-                ))}
+            {/* CRR BOX */}
+            <div style={{ 
+                flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                border: '1px solid #fbbf24', // All around Yellow
+                boxShadow: '0 0 15px rgba(251, 191, 36, 0.1)', 
+                background: 'rgba(251, 191, 36, 0.03)',
+                borderRadius: '4px'
+            }}>
+                <div style={{ fontSize: '16px', color: '#fbbf24', marginBottom: '8px', letterSpacing: '1px', fontWeight: 'bold' }}>BINOMIAL (CRR)</div>
+                <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                    ${prices.crr.toFixed(2)}
+                </div>
             </div>
-        </>
-      )}
+
+        </div>
+
+      </div>
+
+      {/* 4. SEPARATOR: CONVERGENCE HEADER */}
+      <div style={{ margin: '40px 0 20px 0', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ width: '4px', height: '24px', background: '#fbbf24', boxShadow: '0 0 12px rgba(251, 191, 36, 0.5)' }}></div>
+          <h2 style={{ fontSize: '16px', color: '#fbbf24', margin: 0, letterSpacing: '1px' }}>
+              CONVERGENCE ANALYSIS (N={steps})
+          </h2>
+          <div style={{ height: '1px', background: '#333', flex: 1, marginLeft: '10px' }}></div>
+      </div>
+
+      {/* 5. CONVERGENCE GRID (8x2) */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', height: '600px', marginBottom: '40px' }}>
+        
+        {/* LEFT: CONVERGENCE PLOTS */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="bloomberg-panel" style={{ flex: 1, padding: '10px' }}>
+                {visuals ? (
+                    <ConvergenceChart 
+                        data={visuals.convergence} 
+                        dataKeyLine="crr_price" 
+                        dataKeyConstant="bs_price" 
+                        color="#00d4ff" 
+                        title="Price Convergence (CRR → BS)" 
+                    />
+                ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '10px'}}>CALCULATING...</div>}
+            </div>
+
+            <div className="bloomberg-panel" style={{ flex: 1, padding: '10px' }}>
+                {visuals ? (
+                    <ConvergenceChart 
+                        data={visuals.convergence} 
+                        dataKeyLine="crr_delta" 
+                        dataKeyConstant="bs_delta" 
+                        color="#a855f7" 
+                        title="Delta Convergence (CRR → BS)" 
+                    />
+                ) : <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '10px'}}>CALCULATING...</div>}
+            </div>
+        </div>
+
+{/* RIGHT: TREE */}
+        <div style={{ 
+            border: '1px solid #fbbf24', 
+            boxShadow: '0 0 15px rgba(251, 191, 36, 0.1)', 
+            background: 'rgba(251, 191, 36, 0.02)',
+            borderRadius: '4px',
+            // *** KEY FIXES BELOW ***
+            padding: '0px',         // Remove padding so chart hits edges
+            position: 'relative',
+            overflow: 'hidden',     // Cut off anything that tries to escape
+            display: 'flex',        // Ensure child fills space
+            flexDirection: 'column'
+        }}>
+            <div style={{ 
+                position: 'absolute', 
+                top: 10, 
+                left: 15, 
+                zIndex: 10, // Ensure text stays on top of chart 
+                fontSize: '10px', 
+                color: '#fbbf24', 
+                fontWeight: 'bold', 
+                letterSpacing: '1px',
+                pointerEvents: 'none' // Click through text to drag chart
+            }}>
+                BINOMIAL LATTICE (SIMPLIFIED VISUAL)
+            </div>
+            
+            {visuals ? (
+                <div style={{ flex: 1, width: '100%', height: '100%' }}>
+                    <BinomialTreeChart data={visuals.tree} />
+                </div>
+            ) : (
+                <div style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fbbf24', fontSize: '10px'}}>
+                    GENERATING LATTICE...
+                </div>
+            )}
+        </div>
+
+      </div>
 
     </div>
   )
